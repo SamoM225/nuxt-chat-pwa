@@ -1,0 +1,58 @@
+@import "tailwindcss";
+
+@custom-variant dark (&:where(.dark, .dark *));
+
+@layer base {
+	:root {
+		color: #0f172a;
+		background-color: #ecfdf5;
+	}
+
+	:root[data-theme='dark'] {
+		color: #e2ffe9;
+		background-color: #020617;
+	}
+
+	body {
+		min-height: 100vh;
+		background-color: #ecfdf5;
+		color: #0f172a;
+		transition: background-color 300ms ease, color 300ms ease;
+		font-family: 'Inter', system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+		-webkit-font-smoothing: antialiased;
+		background-image: radial-gradient(circle at 20% 20%, rgba(16, 185, 129, 0.25), transparent 45%),
+			radial-gradient(circle at 80% 0%, rgba(16, 185, 129, 0.2), transparent 55%),
+			radial-gradient(circle at 50% 80%, rgba(59, 130, 246, 0.15), transparent 60%);
+	}
+
+	html.dark body {
+		background-color: #020617;
+		color: #e2ffe9;
+		background-image: radial-gradient(circle at 10% 10%, rgba(0, 220, 130, 0.25), transparent 55%),
+			radial-gradient(circle at 80% 20%, rgba(16, 185, 129, 0.15), transparent 60%),
+			radial-gradient(circle at 50% 80%, rgba(14, 165, 233, 0.18), transparent 65%);
+	}
+}
+
+@layer utilities {
+	.text-glow {
+		text-shadow: 0 0 6px rgba(0, 220, 130, 0.8), 0 0 18px rgba(0, 220, 130, 0.45);
+	}
+
+	.text-glow-strong {
+		text-shadow: 0 0 10px rgba(0, 220, 130, 0.9), 0 0 30px rgba(59, 130, 246, 0.5);
+	}
+
+	.glass-panel {
+		background-color: rgba(255, 255, 255, 0.7);
+		border: 1px solid rgba(16, 185, 129, 0.3);
+		backdrop-filter: blur(16px);
+		box-shadow: 0 25px 50px -12px rgba(16, 185, 129, 0.45);
+	}
+
+	html.dark .glass-panel {
+		background-color: rgba(15, 23, 42, 0.75);
+		border-color: rgba(16, 185, 129, 0.35);
+		box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.65);
+	}
+}
