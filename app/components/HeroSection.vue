@@ -10,7 +10,7 @@
                 </h1>
                 <p class="mt-6 max-w-2xl text-base text-slate-600 dark:text-emerald-100/80">
                     We craft end-to-end experiences for SaaS teams, agencies, and creators. From pitch-ready landing
-                    pages to full-stack platforms, our Nuxt + Tailwind pipeline stays fast, accessible, and endlessly brandable.
+                    pages to full-stack platfo;rms, our Nuxt + Tailwind pipeline stays fast, accessible, and endlessly brandable.
                 </p>
                 <div class="mt-10 flex flex-wrap items-center justify-center gap-6 lg:justify-start">
                     <NuxtLink

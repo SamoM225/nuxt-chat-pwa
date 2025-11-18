@@ -17,7 +17,7 @@
         <a href="mailto:studio@signallab.dev" class="text-sm font-semibold uppercase tracking-[0.4em] text-emerald-400 text-glow-strong transition hover:text-emerald-200">
           Let's talk ↗
         </a>
-        <ThemeToggle />
+
       </div>
     </div>
   </header>
