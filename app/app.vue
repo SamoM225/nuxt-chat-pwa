@@ -3,26 +3,20 @@
     <NuxtLayout>
       <NuxtPage />
     </NuxtLayout>
+    <toastAlert ref="toastRef" />
   </div>
 </template>
 
-<script setup lang="ts">
-import { useTheme } from '../composables/useTheme'
+<script>
+import toastAlert from './components/toastAlert.vue'
+import { provide, ref } from 'vue'
 
-const { theme } = useTheme()
-
-useHead(() => ({
-  htmlAttrs: {
-    class: theme.value === 'dark' ? 'dark' : undefined,
-    'data-theme': theme.value
-  },
-  bodyAttrs: {
-    class: [
-      'transition-colors duration-500 font-[\"Space_Grotesk\",Inter,sans-serif] selection:bg-emerald-500/40 selection:text-emerald-50',
-      theme.value === 'dark'
-        ? 'bg-slate-950 text-emerald-50'
-        : 'bg-emerald-50 text-slate-900'
-    ].join(' ')
+export default {
+  components: { toastAlert },
+  setup() {
+    const toastRef = ref(null)
+    provide('toastRef', toastRef)
+    return { toastRef }
   }
-}))
+}
 </script>

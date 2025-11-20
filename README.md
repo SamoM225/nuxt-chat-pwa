@@ -1,75 +1,73 @@
-# Nuxt Minimal Starter
+# Signal Forge Studio · Nuxt + Tailwind
 
-Look at the [Nuxt documentation](https://nuxt.com/docs/getting-started/introduction) to learn more.
+Nuxt 4 landing-page template with a fully themed dark/light experience, Tailwind v4, and a GitHub Pages-ready static build pipeline.
 
-## Setup
+## Prerequisites
 
-Make sure to install dependencies:
+- Node.js 20+
+- npm 10+
+
+Install dependencies once:
 
 ```bash
-# npm
 npm install
-
-# pnpm
-pnpm install
-
-# yarn
-yarn install
-
-# bun
-bun install
 ```
 
-## Development Server
+## Local Development
 
-Start the development server on `http://localhost:3000`:
+Hot-reload dev server (http://localhost:3000):
 
 ```bash
-# npm
 npm run dev
-
-# pnpm
-pnpm dev
-
-# yarn
-yarn dev
-
-# bun
-bun run dev
 ```
 
-## Production
+## Production Builds
 
-Build the application for production:
+SSR build for traditional hosting:
 
 ```bash
-# npm
 npm run build
-
-# pnpm
-pnpm build
-
-# yarn
-yarn build
-
-# bun
-bun run build
+npm run preview
 ```
 
-Locally preview production build:
+Static export for GitHub Pages / any CDN:
 
 ```bash
-# npm
-npm run preview
+# base URL defaults to "/" for local preview
+npm run generate
 
-# pnpm
-pnpm preview
-
-# yarn
-yarn preview
-
-# bun
-bun run preview
+# to mimic Pages locally (replace nuxt with your repo name)
+NUXT_PUBLIC_BASE_URL=/nuxt/ npm run generate
 ```
 
-Check out the [deployment documentation](https://nuxt.com/docs/getting-started/deployment) for more information.
+The generated site lives in `.output/public`.
+
+## GitHub Pages Deployment
+
+This repo ships with `.github/workflows/deploy.yml`, which:
+
+1. Runs on every push to `master` (and via manual dispatch).
+2. Installs dependencies, runs `npm run generate`, and uploads `.output/public`.
+3. Deploys the static artifact via `actions/deploy-pages`.
+
+Environment details:
+
+- `NUXT_PUBLIC_BASE_URL` is automatically set to `/<repository-name>/` so asset paths resolve correctly on Pages.
+- `nitro.preset` is forced to `github-pages` during CI so that CSS, JS, and payload files are emitted in the structure Pages expects.
+
+### Custom base URL locally
+
+If you need to preview the exact GitHub Pages origin in development, export the same env var before running Nuxt:
+
+```bash
+set NUXT_PUBLIC_BASE_URL=/nuxt/& npm run dev        # Windows (cmd)
+
+$env:NUXT_PUBLIC_BASE_URL="/nuxt/"; npm run dev    # PowerShell
+
+NUXT_PUBLIC_BASE_URL=/nuxt/ npm run dev             # macOS/Linux
+```
+
+## Useful Links
+
+- [Nuxt docs](https://nuxt.com/docs)
+- [Tailwind v4 docs](https://tailwindcss.com/docs)
