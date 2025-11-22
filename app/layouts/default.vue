@@ -7,3 +7,9 @@
         <Footer />
     </div>
 </template>
+
+<script>
+import { useInactivityLogout } from '../../composables/useInactivityLogout';
+
+useInactivityLogout();
+</script>

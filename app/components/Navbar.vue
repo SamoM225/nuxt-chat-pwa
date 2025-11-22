@@ -17,6 +17,9 @@
           >
             {{ link.label }}
           </NuxtLink>
+          <NuxtLink v-if="isLoggedIn" to="/profile" class="text-glow transition hover:text-emerald-300">
+            Profile
+          </NuxtLink>
           <NuxtLink v-if="!isLoggedIn" to="/login" class="text-glow transition hover:text-emerald-300">
             Login
           </NuxtLink>
@@ -24,12 +27,13 @@
         </nav>
 
         <div class="flex items-center gap-2 md:gap-4">
-          <a
-            href="mailto:studio@signallab.dev"
+          <button
+            ref="chatButtonRef"
+            @click="toggleChat"
             class="hidden rounded-full border border-emerald-200/60 px-4 py-2 text-xs font-semibold uppercase tracking-[0.35em] text-emerald-500 text-glow-strong transition hover:border-emerald-300 hover:bg-emerald-50/50 dark:border-emerald-200/20 dark:text-emerald-200 dark:hover:border-emerald-200/40 md:inline-flex"
           >
-            Let's talk ↗
-          </a>
+            Let's talk
+          </button>
           <button
             @click="toggleTheme"
             class="rounded-full border border-emerald-200/70 bg-emerald-50/70 p-2 transition hover:bg-emerald-100 dark:border-slate-800 dark:bg-slate-900 dark:hover:bg-slate-800"
@@ -92,7 +96,13 @@
               <li v-for="link in navLinks" :key="`mobile-${link.to}`">
                 <NuxtLink :to="link.to" class="flex items-center justify-between" @click="handleNavClick">
                   {{ link.label }}
-                  <span aria-hidden="true">→</span>
+                  <span aria-hidden="false">→</span>
+                </NuxtLink>
+              </li>
+              <li>
+                <NuxtLink v-if="isLoggedIn" to="/profile" class="flex items-center justify-between" @click="handleNavClick">
+                  Profile
+                  <span aria-hidden="false">→</span>
                 </NuxtLink>
               </li>
               <li>
@@ -107,13 +117,12 @@
               </li>
             </ul>
             <div class="mt-6 space-y-3">
-              <a
-                href="mailto:studio@signallab.dev"
-                class="block rounded-full border border-emerald-200/60 px-4 py-3 text-center text-xs font-semibold uppercase tracking-[0.35em] text-emerald-500 text-glow-strong"
-                @click="closeMenu"
+              <button
+                class="block w-full rounded-full border border-emerald-200/60 px-4 py-3 text-center text-xs font-semibold uppercase tracking-[0.35em] text-emerald-500 text-glow-strong"
+                @click="toggleChatAndClose"
               >
-                Let's talk ↗
-              </a>
+                Let's talk
+              </button>
               <button
                 class="flex w-full items-center justify-center rounded-full border border-emerald-200/60 px-4 py-3 text-xs font-semibold uppercase tracking-[0.35em] text-emerald-500"
                 @click="toggleThemeAndClose"
@@ -125,29 +134,50 @@
         </div>
       </nav>
     </Transition>
+
+    <Transition name="chat-zoom">
+      <ChatWidget 
+        v-if="isChatOpen" 
+        :initial-x="chatPosition.x" 
+        :initial-y="chatPosition.y"
+        :style="{ transformOrigin: transformOrigin }"
+        @close="isChatOpen = false"
+        @update:position="updateChatPosition"
+      />
+    </Transition>
   </header>
 </template>
 <script setup lang="ts">
-import { computed, ref, watch } from 'vue'
-import { useRoute, useUserStore } from '#imports'
+import { computed, ref, watch, onMounted } from 'vue'
+import { useRoute } from '#imports'
 import { useTheme } from '~~/composables/useTheme'
 import { useUser } from '~~/composables/useUser'
+import ChatWidget from './ChatWidget.vue'
 
 const navLinks = [
   { label: 'Home', to: '/' },
   { label: 'Services', to: '/#services' },
   { label: 'Process', to: '/#process' },
-  { label: 'About', to: '/about' }
+  { label: 'About', to: '/about' },
 ]
-
 const menuOpen = ref(false)
-const route = useRoute()
-const userStore = useUserStore()
-const { logout } = useUser()
-const { theme, toggleTheme } = useTheme()
+const isChatOpen = ref(false)
+const chatButtonRef = ref<HTMLElement | null>(null)
+const chatPosition = ref({ x: 0, y: 0 })
+const transformOrigin = ref('top right')
 
-const isLoggedIn = computed(() => userStore.isLoggedIn)
+const route = useRoute()
+const { logout, isLoggedIn } = useUser()
+const { theme, toggleTheme } = useTheme()
 const isDarkMode = computed(() => theme.value === 'dark')
+
+onMounted(() => {
+  // Default position: bottom right with some margin
+  chatPosition.value = {
+    x: window.innerWidth - 450 - 20, // width 450, margin 20
+    y: window.innerHeight - 600 - 20 // height 600, margin 20
+  }
+})
 
 const closeMenu = () => {
   menuOpen.value = false
@@ -157,12 +187,47 @@ const toggleMenu = () => {
   menuOpen.value = !menuOpen.value
 }
 
+const toggleChat = () => {
+  if (!isChatOpen.value) {
+    // Opening
+    if (chatButtonRef.value) {
+       const rect = chatButtonRef.value.getBoundingClientRect()
+       const centerX = rect.left + rect.width / 2
+       const centerY = rect.top + rect.height / 2
+       const ox = centerX - chatPosition.value.x
+       const oy = centerY - chatPosition.value.y
+       transformOrigin.value = `${ox}px ${oy}px`
+    }
+    isChatOpen.value = true
+  } else {
+    // Closing
+    if (chatButtonRef.value) {
+       const rect = chatButtonRef.value.getBoundingClientRect()
+       const centerX = rect.left + rect.width / 2
+       const centerY = rect.top + rect.height / 2
+       const ox = centerX - chatPosition.value.x
+       const oy = centerY - chatPosition.value.y
+       transformOrigin.value = `${ox}px ${oy}px`
+    }
+    isChatOpen.value = false
+  }
+}
+
+const updateChatPosition = (pos: { x: number, y: number }) => {
+  chatPosition.value = pos
+}
+
+const toggleChatAndClose = () => {
+  toggleChat()
+  closeMenu()
+}
+
 const handleNavClick = () => {
   closeMenu()
 }
 
-const handleLogout = () => {
-  logout()
+const handleLogout = async () => {
+  await logout()
   closeMenu()
 }
 
@@ -179,5 +244,13 @@ watch(
 )
 </script>
 <style scoped>
-
+.chat-zoom-enter-active,
+.chat-zoom-leave-active {
+  transition: opacity 0.3s ease, transform 0.3s cubic-bezier(0.16, 1, 0.3, 1);
+}
+.chat-zoom-enter-from,
+.chat-zoom-leave-to {
+  opacity: 0;
+  transform: scale(0);
+}
 </style>

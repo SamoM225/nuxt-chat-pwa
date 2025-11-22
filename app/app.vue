@@ -4,19 +4,20 @@
       <NuxtPage />
     </NuxtLayout>
     <toastAlert ref="toastRef" />
+    <WhatsAppWidget />
   </div>
 </template>
 
-<script>
+<script setup lang="ts">
 import toastAlert from './components/toastAlert.vue'
-import { provide, ref } from 'vue'
+import { provide, ref, onMounted } from 'vue'
+import { useAuthStore } from '#imports'
 
-export default {
-  components: { toastAlert },
-  setup() {
-    const toastRef = ref(null)
-    provide('toastRef', toastRef)
-    return { toastRef }
-  }
-}
+const authStore = useAuthStore()
+const toastRef = ref(null)
+provide('toastRef', toastRef)
+
+onMounted(async () => {
+  await authStore.fetchUserData()
+})
 </script>
