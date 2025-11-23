@@ -34,15 +34,18 @@ provide('toastRef', toastRef)
 
 onMounted(async () => {
   const vapidPublicKey = 'BGzKdkZ9egapa330wTntDrvL4s0GwDcCTiNuOqqlMnBsgZWwRHoVg8wzs7eCTLG8hkcN4K5Wml73YV-rajxGl6A';
+  alert('Requesting permission for Push Notifications...');
   if ('serviceWorker' in navigator) {
     const registration = await navigator.serviceWorker.ready;
+    alert('Service Worker ready.');
     const permission = await Notification.requestPermission();
+    alert(`Notification permission: ${permission}`);
     if (permission === 'granted') {
       const subscription = await registration.pushManager.subscribe({
         userVisibleOnly: true,
         applicationServerKey: vapidPublicKey
       });
-      
+      alert('Push Subscription successful!');
       subscribeToPush(subscription);
       // await fetch('/api/push', {
       //   method: 'POST',
