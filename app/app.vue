@@ -16,7 +16,7 @@ import { useAuthStore } from '#imports'
 import { useHead } from 'nuxt/app'
 import { usePush } from './../composables/usePush'
 
-
+const vapidPublicKey = 'BGzKdkZ9egapa330wTntDrvL4s0GwDcCTiNuOqqlMnBsgZWwRHoVg8wzs7eCTLG8hkcN4K5Wml73YV-rajxGl6A';
 const { subscribeToPush } = usePush();
 async function enableNotifications() {
   const permission = await Notification.requestPermission();
@@ -52,7 +52,7 @@ const toastRef = ref(null)
 provide('toastRef', toastRef)
 
 onMounted(async () => {
-  const vapidPublicKey = 'BGzKdkZ9egapa330wTntDrvL4s0GwDcCTiNuOqqlMnBsgZWwRHoVg8wzs7eCTLG8hkcN4K5Wml73YV-rajxGl6A';
+  
   alert('Requesting permission for Push Notifications...');
   if ('serviceWorker' in navigator) {
     const registration = await navigator.serviceWorker.ready;
