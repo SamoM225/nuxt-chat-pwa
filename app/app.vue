@@ -20,6 +20,7 @@ const vapidPublicKey = 'BGzKdkZ9egapa330wTntDrvL4s0GwDcCTiNuOqqlMnBsgZWwRHoVg8wz
 const { subscribeToPush } = usePush();
 async function enableNotifications() {
   const permission = await Notification.requestPermission();
+  alert(`Notification permission: ${permission}`);
   if (permission == 'granted') {
     const registration = await navigator.serviceWorker.ready;
     alert('Service Worker ready.');
