@@ -11,6 +11,7 @@
   <break></break>
   <button @click="enableNotifications">Povoliť notifikácie</button>
   <break></break>
+  <button @click="returnVapidKeys()">Zobraziť VAPID kľúče</button>
 </template>
 
 <script setup lang="ts">
@@ -19,6 +20,14 @@ import { provide, ref, onMounted } from 'vue'
 import { useAuthStore } from '#imports'
 import { useHead } from 'nuxt/app'
 import { usePush } from './../composables/usePush'
+import { useRuntimeConfig } from '#imports'
+
+const config = useRuntimeConfig()
+const vapidPublicKey = config.public.vapidPublicKey
+
+function returnVapidKeys() {
+  alert(`Public Key: ${vapidPublicKey}`)
+}
 
 async function sendPushNotification() {
   await $fetch('/api/push/send-test', {
@@ -30,7 +39,6 @@ async function sendPushNotification() {
 
 
 
-const vapidPublicKey = 'BGzKdkZ9egapa330wTntDrvL4s0GwDcCTiNuOqqlMnBsgZWwRHoVg8wzs7eCTLG8hkcN4K5Wml73YV-rajxGl6A';
 const { subscribeToPush } = usePush();
 function urlBase64ToUint8Array(base64String: string) {
   const padding = '='.repeat((4 - (base64String.length % 4)) % 4)
@@ -45,24 +53,24 @@ function urlBase64ToUint8Array(base64String: string) {
 
 async function enableNotifications() {
   if (!('serviceWorker' in navigator) || !('PushManager' in window)) {
-    alert('Push not supported')
+
     return
   }
 
   const perm = await Notification.requestPermission()
-  alert(`Notification permission: ${perm}`)
+
   if (perm !== 'granted') return
 
   try {
     const registration = await navigator.serviceWorker.ready
-    alert('Service Worker ready.')
+
 
     const subscription = await registration.pushManager.subscribe({
       userVisibleOnly: true,
       applicationServerKey: urlBase64ToUint8Array(vapidPublicKey)
     })
 
-    alert('Push Subscription successful!')
+
     subscribeToPush(subscription)
   } catch (e) {
     alert('Subscribe failed: ' + (e as Error).message)
@@ -85,12 +93,12 @@ provide('toastRef', toastRef)
 
 onMounted(async () => {
 
-  alert('Requesting permission for Push Notifications...');
+
   if ('serviceWorker' in navigator) {
     const registration = await navigator.serviceWorker.ready;
-    alert('Service Worker ready.');
+
     const permission = await Notification.requestPermission();
-    alert(`Notification permission: ${permission}`);
+
     if (permission === 'granted') {
       const subscription = await registration.pushManager.subscribe({
         userVisibleOnly: true,

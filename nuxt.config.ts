@@ -5,6 +5,12 @@ export default defineNuxtConfig({
   app: {
     baseURL: process.env.NUXT_PUBLIC_BASE_URL || '/'
   },
+  runtimeConfig: {
+    vapidPrivateKey: process.env.VAPID_PRIVATE_KEY || '',
+    public: {
+      vapidPublicKey: process.env.VAPID_PUBLIC_KEY || ''
+    }
+  },
   devtools: { enabled: true },
   modules: [
     '@nuxt/eslint',

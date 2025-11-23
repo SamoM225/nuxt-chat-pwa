@@ -1,40 +1,20 @@
-import webpush from 'web-push';
-import { serverSupabaseClient } from '#supabase/server';
-
-const vapidPublicKey = process.env.VAPID_PUBLIC_KEY || '';
-const vapidPrivateKey = process.env.VAPID_PRIVATE_KEY || '';
-
-webpush.setVapidDetails('mailto:majerciks1004@gmail.com', vapidPublicKey, vapidPrivateKey);
+import webpush from 'web-push'
 
 export default defineEventHandler(async (event) => {
-    const body = await readBody<{
-        subscriptionId: string;
-    }>(event);
+  const config = useRuntimeConfig()
 
-    const supabase = await serverSupabaseClient(event);
-    const { data, error } = await supabase
-        .from('pwa_subscriptions')
-        .select('*')
-        .eq('id', body.subscriptionId)
-        .single();
+  webpush.setVapidDetails(
+    'mailto:majercik1004@gmail.com',
+    config.public.vapidPublicKey,
+    config.vapidPrivateKey
+  )
 
-    if (error || !data) {
-        throw createError({ statusCode: 404, statusMessage: 'Subscription not found' });
-    }
+  const body = await readBody<{ subscription: any }>(event)
 
-    const subscription = {
-        endpoint: data.endpoint,
-        keys: {
-            p256dh: data.p256dh,
-            auth: data.auth
-        }
-    }
+  await webpush.sendNotification(
+    body.subscription,
+    JSON.stringify({ title: 'Test', body: 'Ahoj' })
+  )
 
-    await webpush.sendNotification(
-        subscription as any,
-        JSON.stringify({
-            title: 'Test notification', body: 'Test push notification from server to the operator on PWA app.', url: '/'
-    })
-    )
-    return { ok: true };
+  return { ok: true }
 })
