@@ -6,6 +6,7 @@
     <toastAlert ref="toastRef" />
     <WhatsAppWidget />
   </div>
+  <button @click="enableNotifications">Povoliť notifikácie</button>
 </template>
 
 <script setup lang="ts">
@@ -17,7 +18,11 @@ import { usePush } from './../composables/usePush'
 
 
 const { subscribeToPush } = usePush();
-
+async function enableNotifications() {
+  const permission = await Notification.requestPermission();
+  alert(`Notification permission: ${permission}`);
+  // ...subscribe kód...
+}
 useHead({
   link: [
     { rel: 'apple-touch-icon', href: '/nux192.png' }
