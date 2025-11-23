@@ -18,26 +18,43 @@ import { usePush } from './../composables/usePush'
 
 const vapidPublicKey = 'BGzKdkZ9egapa330wTntDrvL4s0GwDcCTiNuOqqlMnBsgZWwRHoVg8wzs7eCTLG8hkcN4K5Wml73YV-rajxGl6A';
 const { subscribeToPush } = usePush();
+function urlBase64ToUint8Array(base64String: string) {
+  const padding = '='.repeat((4 - (base64String.length % 4)) % 4)
+  const base64 = (base64String + padding).replace(/-/g, '+').replace(/_/g, '/')
+  const rawData = atob(base64)
+  const outputArray = new Uint8Array(rawData.length)
+  for (let i = 0; i < rawData.length; i++) {
+    outputArray[i] = rawData.charCodeAt(i)
+  }
+  return outputArray
+}
+
 async function enableNotifications() {
-  const permission = await Notification.requestPermission();
-  alert(`Notification permission: ${permission}`);
-  if (permission == 'granted') {
-    const registration = await navigator.serviceWorker.ready;
-    alert('Service Worker ready.');
-    const permission = await Notification.requestPermission();
-    alert(`Notification permission: ${permission}`);
-    if (permission === 'granted') {
-      const subscription = await registration.pushManager.subscribe({
-        userVisibleOnly: true,
-        applicationServerKey: vapidPublicKey
-      });
-      alert('Push Subscription successful!');
-      subscribeToPush(subscription);
-    }
-    alert(`Notification permission: ${permission}`);
-    // ...subscribe kód...
+  if (!('serviceWorker' in navigator) || !('PushManager' in window)) {
+    alert('Push not supported')
+    return
+  }
+
+  const perm = await Notification.requestPermission()
+  alert(`Notification permission: ${perm}`)
+  if (perm !== 'granted') return
+
+  try {
+    const registration = await navigator.serviceWorker.ready
+    alert('Service Worker ready.')
+
+    const subscription = await registration.pushManager.subscribe({
+      userVisibleOnly: true,
+      applicationServerKey: urlBase64ToUint8Array(vapidPublicKey)
+    })
+
+    alert('Push Subscription successful!')
+    subscribeToPush(subscription)
+  } catch (e) {
+    alert('Subscribe failed: ' + (e as Error).message)
   }
 }
+
 useHead({
   link: [
     { rel: 'apple-touch-icon', href: '/nux192.png' }
