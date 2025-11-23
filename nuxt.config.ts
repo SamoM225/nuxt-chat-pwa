@@ -13,9 +13,7 @@ export default defineNuxtConfig({
     '@vite-pwa/nuxt'
   ],
   pwa: {
-    strategies: 'injectManifest',
-    srcDir: 'service-worker',
-    filename: 'sw.js',
+    // vyhoď strategies: 'injectManifest', srcDir, filename
     registerType: 'autoUpdate',
     manifest: {
       name: 'Chat app nuxt',
@@ -33,6 +31,7 @@ export default defineNuxtConfig({
       purpose: ['any', 'maskable']
     },
     workbox: {
+      importScripts: ['/sw-custom.js'],
       runtimeCaching: [
         {
           handler: 'CacheFirst',
@@ -45,7 +44,7 @@ export default defineNuxtConfig({
           },
           urlPattern: 'https://my-cdn.com/.*'
         }
-      ],
+      ]
     }
   },
   css: ['./app/assets/css/main.css'],
