@@ -1,6 +1,6 @@
 export const usePush = () => {
     const subscribeToPush = async (subscription: PushSubscription,) => {
-        await fetch('/api/push/save-subscription', {
+        await $fetch('/api/push/save-subscription', {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify({
