@@ -32,7 +32,7 @@ function returnVapidKeys() {
 async function sendPushNotification() {
   await $fetch('/api/push/send-test', {
     method: 'POST',
-    body: { subscriptionId: 'ab0ac868-1d0a-4646-a5a5-6d61c9249d83' }
+    body: { subscriptionId: '747c4052-ed8f-4f4a-bf4c-7a6f8b03ae6f' }
   })
 
 }
