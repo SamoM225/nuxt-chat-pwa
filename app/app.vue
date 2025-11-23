@@ -6,7 +6,11 @@
     <toastAlert ref="toastRef" />
     <WhatsAppWidget />
   </div>
+  <button @click="sendPushNotification">Odoslať push notifikáciu</button>
+  <break></break>
+  <break></break>
   <button @click="enableNotifications">Povoliť notifikácie</button>
+  <break></break>
 </template>
 
 <script setup lang="ts">
@@ -15,6 +19,16 @@ import { provide, ref, onMounted } from 'vue'
 import { useAuthStore } from '#imports'
 import { useHead } from 'nuxt/app'
 import { usePush } from './../composables/usePush'
+
+async function sendPushNotification() {
+  await $fetch('/api/push/send-test', {
+    method: 'POST',
+    body: { subscriptionId: 'ab0ac868-1d0a-4646-a5a5-6d61c9249d83' }
+  })
+
+}
+
+
 
 const vapidPublicKey = 'BGzKdkZ9egapa330wTntDrvL4s0GwDcCTiNuOqqlMnBsgZWwRHoVg8wzs7eCTLG8hkcN4K5Wml73YV-rajxGl6A';
 const { subscribeToPush } = usePush();
@@ -70,7 +84,7 @@ const toastRef = ref(null)
 provide('toastRef', toastRef)
 
 onMounted(async () => {
-  
+
   alert('Requesting permission for Push Notifications...');
   if ('serviceWorker' in navigator) {
     const registration = await navigator.serviceWorker.ready;
