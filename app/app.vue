@@ -92,8 +92,9 @@ const toastRef = ref(null)
 provide('toastRef', toastRef)
 
 onMounted(async () => {
-
-
+  console.log('Fetching user data on app mount...')
+  await authStore.fetchUserData()
+  console.log('User data fetched:', authStore.user)
   if ('serviceWorker' in navigator) {
     const registration = await navigator.serviceWorker.ready;
 
@@ -121,6 +122,5 @@ onMounted(async () => {
       // });
     }
   }
-  await authStore.fetchUserData()
 })
 </script>

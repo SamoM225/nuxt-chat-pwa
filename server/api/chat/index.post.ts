@@ -2,6 +2,33 @@ import { serverSupabaseClient } from '#supabase/server'
 import { readBody } from 'h3'
 import { ADMIN_UID } from '../../../utils/chat'
 
+
+const operatorSendMessage = async (supabase: any, conversationId: string, text: string, adminMessage: boolean) => {
+  let { data: conversation } = await supabase
+    .from('conversations')
+    .select('*')
+    .eq('id', conversationId)
+    .single()
+
+  if (!conversation) {
+    return { error: 'Conversation not found' }
+  }
+
+  const { error } = await supabase
+    .from('messages')
+    .insert([{
+      conversation_id: conversationId,
+      sender_id: ADMIN_UID,
+      receiver_id: conversation.contact_id,
+      text
+    }])
+  if (error) {
+    return { error: 'Failed to send message' }
+  }
+
+  return { message: 'Message sent successfully' }
+}
+
 const sendFirstMessage = async (supabase: any, name: string, email: string, text: string) => {
   let { data: contact } = await supabase
     .from('contacts')
@@ -85,6 +112,15 @@ const sendNextMessage = async (supabase: any, conversationId: string, text: stri
 export default defineEventHandler(async (event) => {
   const supabase = await serverSupabaseClient(event)
   const body = await readBody(event)
+
+  if (body?.adminMessage === true) {
+    return operatorSendMessage(
+      supabase,
+      body.conversationId,
+      body.text,
+      body.adminMessage
+    )
+  }
 
   if (!body?.text) {
     event.node.res.statusCode = 400

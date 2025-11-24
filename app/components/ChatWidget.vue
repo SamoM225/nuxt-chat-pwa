@@ -1,5 +1,5 @@
 <template>
-    <div ref="chatWindow" :style="{ left: `${x}px`, top: `${y}px` }"
+    <div v-if="!isMobile" ref="chatWindow" :style="{ left: `${x}px`, top: `${y}px` }"
         class="fixed z-[100] flex h-[600px] w-[520px] flex-col overflow-hidden rounded-2xl border border-emerald-200/60 bg-white shadow-2xl shadow-emerald-500/10 dark:border-emerald-800/50 dark:bg-slate-900">
         <div v-if="showEntryForm" class="flex h-full flex-col items-center justify-center p-8">
             <h3 class="mb-4 text-lg font-bold text-emerald-700 dark:text-emerald-300">Zadajte meno a email</h3>
@@ -42,7 +42,7 @@
                             <span class="text-sm font-semibold text-slate-800 dark:text-slate-100">{{
                                 conversation.contactName }}</span>
                             <span class="text-xs text-slate-500 dark:text-slate-400">{{ conversation.contactEmail
-                            }}</span>
+                                }}</span>
                         </div>
                     </button>
                     <p v-if="!loadingConversations && conversations.length === 0"
@@ -92,7 +92,11 @@
                     <div v-else class="flex flex-col gap-4">
                         <div v-for="(msg, index) in messages" :key="index" :class="[
                             'max-w-[85%] rounded-2xl px-4 py-3 text-sm',
-                            msg.isUser
+                            (
+                                isAdmin
+                                    ? msg.sender_id === auth.user?.sub
+                                    : msg.sender_id === chat.userId || msg.sender_id == null
+                            )
                                 ? 'self-end rounded-br-none bg-emerald-500 text-white'
                                 : 'self-start rounded-bl-none bg-slate-100 text-slate-700 dark:bg-slate-800 dark:text-slate-300'
                         ]">
@@ -116,12 +120,27 @@
                         </button>
                     </div>
                 </form>
+                <!-- Ak je uživateľ operátor/admin -->
                 <div v-else
                     class="shrink-0 border-t border-emerald-100 bg-emerald-50/40 px-4 py-3 text-xs text-emerald-900 dark:border-emerald-900/50 dark:bg-slate-900/80 dark:text-slate-400">
-                    Admin náhľad chatu je aktuálne určený iba na čítanie.
+                    <form @submit.prevent="sendMessage" class="flex items-center gap-3">
+                        <input v-model="newMessage" type="text" placeholder="Napíšte správu..."
+                            class="flex-1 rounded-full border border-emerald-200 bg-slate-50 px-4 py-2 text-sm focus:border-emerald-500 focus:outline-none dark:border-slate-700 dark:bg-slate-800 dark:text-white dark:focus:border-emerald-500">
+                        <button type="submit" :disabled="!newMessage.trim()"
+                            class="flex h-9 w-9 items-center justify-center rounded-full bg-emerald-500 text-white transition hover:bg-emerald-600 disabled:cursor-not-allowed disabled:opacity-50">
+                            <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none" viewBox="0 0 24 24"
+                                stroke="currentColor">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                    d="M12 19l9 2-9-18-9 18 9-2zm0 0v-8" />
+                            </svg>
+                        </button>
+                    </form>
                 </div>
             </div>
         </div>
+    </div>
+    <div v-else>
+        <ChatWidgetMobile />
     </div>
 </template>
 
@@ -132,6 +151,12 @@ import { useAuthStore, useChatStore } from '#imports'
 import { useChat, type ConversationHead } from '../../composables/useChat'
 import { ADMIN_UID } from '../../utils/chat'
 import { useChatRealtime } from '../../composables/useChatRealtime'
+
+const isMobile = computed(() => {
+    const ua = navigator.userAgent
+    return /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(ua)
+})
+
 
 const auth = useAuthStore()
 const chat = useChatStore()
@@ -216,6 +241,9 @@ const submitUser = async () => {
     if (name.value.trim() && email.value.trim()) {
         userReady.value = true
         chat.setUser(name.value.trim(), email.value.trim())
+        const res = await getUserChatId(email.value.trim())
+        console.log('Existing User in chat ID:', res)
+        chat.setUser(name.value.trim(), email.value.trim(), res)
         // No need to manually load messages, handled by useChatRealtime
     }
 }
@@ -264,14 +292,14 @@ onMounted(() => {
     }
 })
 const conversationIdRef = computed(() => chat.conversationId || '')
-
-const { messages, newMessage, sendMessage } = useChatRealtime(
-  conversationIdRef,
-  name,
-  email,
-  (id) => {
-    chat.setConversation(id)
-  }
+const { messages, newMessage, sendMessage, getUserChatId } = useChatRealtime(
+    conversationIdRef,
+    name,
+    email,
+    (id) => {
+        chat.setConversation(id)
+    },
+    isAdmin.value
 )
 
 

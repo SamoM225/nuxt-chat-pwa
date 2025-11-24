@@ -1,16 +1,41 @@
 // composables/useChatRealtime.ts
 import type { RealtimeChannel } from '@supabase/supabase-js'
 
+type pushMessage = {
+  title: string;
+  pushBody: string;
+  subscriptionId: string;
+}
+
+async function sendPushNotification(message: pushMessage, isAdmin: boolean = false) {
+  if (isAdmin) return; // Do not send push notifications for admin messages
+  await $fetch('/api/push/send-test', {
+    method: 'POST',
+    body: message
+  })
+}
+
 export const useChatRealtime = (
   conversationId: Ref<string>,
   userName?: Ref<string>,
   userEmail?: Ref<string>,
-  onConversationCreated?: (id: string) => void
+  onConversationCreated?: (id: string) => void,
+  isAdmin?: boolean
 ) => {
   const supabase = useSupabaseClient()
   const messages = ref<any[]>([])
   const newMessage = ref('')
   const channel = ref<RealtimeChannel | null>(null)
+  const adminMessage = ref(false)
+
+  const getUserChatId = async (email: string) => {
+    const res: any = await $fetch(`/api/chat/getUserId`, {
+      method: 'POST',
+      body: { email }
+    })
+    return res?.data?.id || null
+  }
+
 
   const cleanupChannel = () => {
     if (channel.value) {
@@ -68,7 +93,10 @@ export const useChatRealtime = (
   const sendMessage = async () => {
     if (!newMessage.value) return
 
-    // 1) prvá správa – ešte nemáme conversationId
+    // Set adminMessage flag based on isAdmin
+    adminMessage.value = !!isAdmin
+
+    // 1) First message – no conversationId yet
     if (!conversationId.value) {
       if (!userName?.value || !userEmail?.value) {
         console.warn('Missing name/email for first message')
@@ -80,7 +108,7 @@ export const useChatRealtime = (
         body: {
           name: userName.value,
           email: userEmail.value,
-          text: newMessage.value
+          text: newMessage.value,
         }
       })
 
@@ -89,12 +117,36 @@ export const useChatRealtime = (
       if (res?.conversationId) {
         onConversationCreated?.(res.conversationId)
       }
-
+      sendPushNotification({
+        title: 'New message from customer',
+        pushBody: newMessage.value,
+        subscriptionId: '747c4052-ed8f-4f4a-bf4c-7a6f8b03ae6f',
+      })
       newMessage.value = ''
       return
     }
 
-    // 2) existujúca konverzácia
+    // 2) Operator/admin reply
+    if (adminMessage.value) {
+      await $fetch('/api/chat', {
+        method: 'POST',
+        body: {
+          conversationId: conversationId.value,
+          text: newMessage.value,
+          adminMessage: true
+        }
+      })
+      adminMessage.value = false
+      sendPushNotification({
+        title: 'New message from customer',
+        pushBody: newMessage.value,
+        subscriptionId: '747c4052-ed8f-4f4a-bf4c-7a6f8b03ae6f'
+      })
+      newMessage.value = ''
+      return
+    }
+
+    // 3) Existing conversation
     await $fetch('/api/chat', {
       method: 'POST',
       body: {
@@ -102,7 +154,11 @@ export const useChatRealtime = (
         text: newMessage.value
       }
     })
-
+    sendPushNotification({
+      title: 'New message from customer',
+      pushBody: newMessage.value,
+      subscriptionId: '747c4052-ed8f-4f4a-bf4c-7a6f8b03ae6f'
+    })
     newMessage.value = ''
   }
 
@@ -110,5 +166,5 @@ export const useChatRealtime = (
     cleanupChannel()
   })
 
-  return { messages, newMessage, sendMessage }
+  return { messages, newMessage, adminMessage, sendMessage, getUserChatId }
 }
